@@ -1,0 +1,69 @@
+/**
+ * Die CSS Dateien
+ * 
+ * geschrieben fuer das Bachelorprojekt BigData 2016, AI IV / Universitaet Bayreuth
+ * 
+ * Author: BigData2
+ * 
+ **/
+
+body {
+	font-family: Calibri;
+	background: none;
+	padding: 0px;
+	margin: 0px;
+}
+
+html, body {
+	overflow: hidden;
+	cursor: default;
+	height: 100%;
+	width: 100%;
+	
+	-webkit-user-select: none;
+}
+
+div.main {
+	display: block;
+	height: -webkit-calc(100% - 4px);
+	width: -webkit-calc(100% - 4px);
+}
+div.main div.head {
+	background-color: #F2F3F4;
+	position: fixed;
+	z-index: 10000;
+	display: block;
+	border-bottom: 1px solid #E1E6EC;
+	width: 100%;
+	left: 0px;
+	top: 0px;
+}
+div.main div.head div.title {
+	font-weight: bold;
+	font-size: 20px;
+	display: block;
+	padding: 10px 0px 10px 10px;
+	cursor: move;
+	width: -webkit-calc(100% - 24px - 30px);
+	float: left;
+	color: #545E67;
+}
+div.main div.head div.close {
+	display: block;
+	padding: 10px;
+	height: 24px;
+	width: 24px;
+	float: right;
+}
+
+div.main div.body {
+	margin-top: -webkit-calc(24px + 30px);
+	display: block;
+	height: -webkit-calc(100% - 24px - 30px);
+	width: -webkit-calc(100%);
+}
+
+::-webkit-scrollbar {
+	width: 0 !important;
+	height: 0 !important;
+}

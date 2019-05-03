@@ -1,0 +1,14 @@
+{
+	"name": "Bachelor Projekt",
+	"main": "index.html",
+	"nodejs": "true",
+	"window": {"icon": "",
+		"width": 800,
+		"height": 500,
+		"min_width": 800,
+		"min_height": 500,
+		"frame": false,
+		"show_in_taskbar": true,
+		"fullscreen": false
+	}
+}

@@ -1,0 +1,338 @@
+<!--
+--
+-- Einstiegspunkt der Anwendung
+--
+-- geschrieben fuer das Bachelorprojekt BigData 2016, AI IV / Universitaet Bayreuth
+--
+-- Author: BigData2
+--
+-->
+<!DOCTYPE html>
+<html>
+<head>
+<title>Bachelor Projekt</title>
+<meta charset="utf-8">
+<!--<link rel="stylesheet" type="text/css" href="css/main.css">-->
+
+<!-- eigene Dateien -->
+<script type="text/javascript" src="javascript/error.js"></script>
+<script type="text/javascript" src="javascript/fenster.js"></script>
+<script type="text/javascript" src="javascript/datenbank_settings.js"></script>
+<script type="text/javascript" src="javascript/datenbank_mysql.js"></script>
+<script type="text/javascript" src="javascript/datenbank_mssql.js"></script>
+<script type="text/javascript" src="javascript/datenbank.js"></script>
+<script type="text/javascript" src="javascript/utility.js"></script>
+<script type="text/javascript" src="javascript/gui.js"></script>
+<script type="text/javascript" src="javascript/daten.js"></script>
+
+<!-- fremde Bibliotheken -->
+<script type="text/javascript" src="javascript/jquery-2.2.3.min.js"></script>
+<script type="text/javascript" src="javascript/jquery-ui.min.js"></script>
+
+<!-- eigene Dateien -->
+<script type="text/javascript">
+global.jQuery = jQuery;
+</script>
+
+<!-- fremde Bibliotheken -->
+<link rel="stylesheet" href="bootstrap-3.3.5-dist/css/bootstrap.min.css">
+<link rel="stylesheet" href="jquery-ui-bootstrap-jquery-ui-bootstrap-71f2e47/css/custom-theme/jquery-ui-1.10.0.custom.css">
+<link rel="stylesheet" href="css/jquery-ui.theme.css">
+<script type="text/javascript" src="bootstrap-3.3.5-dist/js/bootstrap.min.js"></script>
+<link rel="stylesheet" href="css/jquery-jvectormap-2.0.3.css" type="text/css" media="screen"/>
+<script type="text/javascript" src="javascript/jquery-jvectormap-2.0.3.min.js"></script>
+<script type="text/javascript" src="javascript/jquery-jvectormap-world-mill.js"></script>
+
+
+<!-- eigene Dateien -->
+<script type="text/javascript" src="javascript/wetterdaten.js"></script>
+<script type="text/javascript" src="javascript/svg_chart.js"></script>
+<script type="text/javascript" src="javascript/visualisierung.js"></script>
+<script type="text/javascript" src="javascript/autocompletion_init.js"></script>
+<link rel="stylesheet" type="text/css" href="css/style.css">
+<script type="text/javascript" src="javascript/app.js"></script>
+<script type="text/javascript">
+var out = function() { console.log(arguments); };
+
+</script>
+<style type="text/css">
+
+</style>
+</head>
+<body>
+<!-- Seitenüberschrift -->
+<div id="projektName" class="container">
+	<h1>GeoDeviceWeather</h1>
+	<h3>Your regional Tweets - Your lokal Weather</h3>
+	<div class="close">
+		<svg width="24px" height="24" style="display: block;">
+			<g id="close" style="cursor: pointer;">
+				<polygon points="5,5 20,5 20,20 5,20" style="fill:rgba(255,255,255,0);stroke-width:0;" />
+				<line x1="5" y1="5" x2="20" y2="20" style="stroke:#414D5C;stroke-width:3;" />
+				<line x1="5" y1="20" x2="20" y2="5" style="stroke:#414D5C;stroke-width:3;" />
+			</g>
+		</svg>
+	</div>
+</div>
+
+<!-- Register Seitenauswahl -->
+<nav id="reiter" class="navbar navbar-default">
+	<div class="container-fluid">
+		<ul class="nav navbar-nav">
+			<li class="active"><a id="reiterHome" href="#">Startseite</a></li>
+			<li><a id="reiterOrtAuswahl" href="#">Ort auswählen</a></li>
+			<li><a id="reiterNeuerOrt" href="#">Neuen Import anlegen</a></li>
+			<li><a id="reiterImportmanagement" href="#">Importmanagement</a></li>
+		</ul>
+	</div>
+</nav>
+
+<div id="Seiten">
+    <!-- Startseite -->
+    <div id="SeiteHome">
+		<div>
+			<img id="bearbeitungBild" src="bearbeitung.jpg" alt=" ">
+		</div>
+    </div>
+
+    <!-- Seite, um den Ort auszuwählen -->
+    <div id="SeiteOrtWahl">
+		<div class="row">
+			<!-- Dropdown-Menü zur Auswahl des Orts -->
+			<div class="col-md-3">
+				<div id="OrtWahl" class="dropdown">
+					<button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown"> Ort auswählen <span class="caret"></span></button>
+					<ul class="dropdown-menu">
+					</ul>
+				</div>
+			</div>
+			<!-- Name des ausgewählten Ortes soll über der Visualisierung eingeblendet werden -->
+			<div id="ausgewaehlterOrt" class="col-md-9">
+				<span><b></b></span>
+			</div>
+		</div>
+		<!-- hier wird die Karte zur Anzeige der verfügbaren Orte angezeigt -->
+		<div id="karte" style="width: 600px; height: 400px"></div>
+
+
+		<div class="VisualisierungDaten">
+			<div class="row">
+				<!-- Checkboxen zur Auswahl der visualisierten Daten -->
+				<div id="checkBoxDaten" class="col-md-2">
+					<div class="checkbox">
+						<label><input type="checkbox" value="">Temperatur</input></label>
+					</div>
+					<div class="checkbox">
+						<label><input type ="checkbox" value="">Wettertyp</input></label>
+					</div>
+					<div class="checkbox">
+						<label><input type="checkbox" value="">Windrichtung</input></label>
+					</div>
+					<div class="checkbox">
+						<label><input type="checkbox" value="">Windgeschwindigkeit</input></label>
+					</div>
+					<div class="checkbox">
+						<label><input type="checkbox" value="">Luftfeuchtigkeit</input></label>
+					</div>
+					<div class="checkbox">
+						<label><input type="checkbox" value="">Luftdruck</input></label>
+					</div>
+					<div class="checkbox">
+						<label><input type="checkbox" value="">Wolken</input></label>
+					</div>
+					<div class="checkbox">
+						<label><input type="checkbox" value="">Twitter for iPhone</input></label>
+					</div>
+					<div class="checkbox">
+						<label><input type="checkbox" value="">Twitter for Android</input></label>
+					</div>
+					<div class="checkbox">
+						<label><input type="checkbox" value="">Twitter Web Client</input></label>
+					</div>
+					<div class="checkbox">
+						<label><input type="checkbox" value="">Instagram</input></label>
+					</div>
+				</div>
+				<!-- hier wird die Visualisierung eingefügt -->
+				<div class="col-md-10">
+					<div id="visuBild"></div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+    <!-- Seite, um einen neuen Ort zu speichern -->
+    <div id="SeiteNeuerOrt">
+
+		<div class="row">
+			<div class="col-md-4">
+				<div class="form-group">
+					<label for="OrtName" class="sr-only">Ort</label>
+					<input type="text" class="form-control" id="OrtName" placeholder="Name Location Area">
+				</div>
+			</div>
+			<div class="col-md-4">
+					<div class="form-group">
+						<label for="area" class="sr-only">area</label>
+						<input type="number" step="0.01" min="0.01" class="form-control" id="area" placeholder="Größe der Boundary-Box in Meter">
+					</div>
+			</div>
+		</div>
+
+		<div class="row">
+			<div class="col-md-4"></div>
+			<div class="col-md-4">
+				<form class="form-inline">
+					<div class="form-group">
+						<label for="latM" class="sr-only">latM</label>
+						<input type="text" class="form-control" id="latM" placeholder="Längengrad">
+					</div>
+					<div class="form-group">
+						<label for="lonM" class="sr-only">lonM</label>
+						<input type="text" class="form-control" id="lonM" placeholder="Breitengrad">
+					</div>
+				</form>
+			</div>
+		</div>
+
+		<div id="InfoEingabeNeuerOrt" class="row">
+			<div class="col-md-4">
+			</div>
+			<div class="col-md-8">
+				<div class="form-inline">
+					<button id="SpeichernNeuerOrt" type="button" class="btn btn-default">Speichern</button>
+					<button id="ImportStarten" type="button" class="btn btn-default">Import starten</button>
+				</div>
+			</div>
+		</div>
+
+		<div id="InfoKoordinatenBild" class="row">
+			<div class="col-md-4">
+				<img  src="InfoKoordinaten.png" alt=" ">
+			</div>
+			<div class="col-md-8"></div>
+		</div>
+
+  </div>
+
+
+	<div id="SeiteImportmanagement">
+		<div>
+			<button id="ImporteAktualisieren" type="button" class="btn btn-default">
+          <span class="glyphicon glyphicon-refresh"></span> Importe aktualisieren
+      </button>
+		</div>
+		<div class="container">
+			<table id="tabelleImporter" class="table table-striped table-condensed">
+				<thead>
+					<tr>
+						<th>PID</th>
+						<th>Typ</th>
+						<th>Ort</th>
+						<th>Status</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td>123456789</td>
+						<td>Twitter</td>
+						<td>London</td>
+						<td><span class="glyphicon glyphicon-ok"> </span></td>
+					</tr>
+					<tr>
+						<td>987654321</td>
+						<td>Openweathermap</td>
+						<td>New York</td>
+						<td><span class="glyphicon glyphicon-ok"> </span></td>
+					</tr>
+					<tr>
+						<td>555555555</td>
+						<td>Twitter</td>
+						<td>Sueddeutschland</td>
+						<td><span class="glyphicon glyphicon-ok"> </span></td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+
+		<div id="textVerfuegbareKeys" class="row">
+				<h4>noch verfügbare API-Keys:<h4>
+		</div>
+
+		<div class="container">
+			<table id="tabelleVerfuegbareKeys" class="table table-striped">
+				<thead>
+					<tr>
+						<th>API</th>
+						<th>Anzahl</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td>Twitter</td>
+						<td>4</td>
+					</tr>
+					<tr>
+						<td>Openweathermap</td>
+						<td>3</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+
+		<div id="textImportStarten" class="row">
+			<h4>Import starten</h4>
+		</div>
+
+
+		<div class="btn-group">
+			<div class="dropdown">
+				<button id="dropdownImportTyp" class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">Importer-Typ auswählen
+				<span class="caret"> </span></button>
+				<ul class="dropdown-menu"></ul>
+			</div>
+		</div>
+		<div class="btn-group">
+			<div  id="OrtWahl" class="dropdown">
+				<button id="dropdownImportOrt" class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">Ort auswählen
+				<span class="caret"> </span></button>
+				<ul class="dropdown-menu"></ul>
+			</div>
+		</div>
+		<div class="btn-group">
+			<button id="ImportStarten" type="button" class="btn btn-default">Import starten</button>
+		</div>
+
+<!--
+
+		<h4>neuen API-Key anlegen</h4>
+			<div class="form-inline">
+				<div class="dropdown">
+    			<button id="apiTypDropdown" class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">API-Typ auswählen
+    			<span class="caret"></span></button>
+    			<ul class="dropdown-menu" role="menu">
+      			<li><a href="#">Openweathermap</a></li>
+      			<li><a href="#">Twitter</a></li>
+		    	</ul>
+  			</div>
+
+				<form class="form-horizontal" role="form">
+					<div class="form-inline">
+						<div class="form-group col-md-6">
+    					<label for="accessToken" class="control-label">Access Token</label>
+      				<input type="text" class="form-control" id="accessToken" placeholder=" ">
+  					</div>
+  					<div class="form-group col-md-6">
+    					<label for="tokenSecret" class="control-label">Token Secret</label>
+      				<input type="text" class="form-control" id="tokenSecret" placeholder=" ">
+  					</div>
+					</div>
+				</form>
+
+			</div>
+
+-->
+
+	</div>
+</body>
+</html>

@@ -1,0 +1,101 @@
+CREATE TABLE bachelor_bigdata2_locationarea(
+  locationid int,
+  name varchar(50),
+  long1 float,
+  lat1 float,
+  long2 float,
+  lat2 float,
+  PRIMARY KEY (locationid)
+);
+
+CREATE TABLE bachelor_bigdata2_baederverwaltung (
+  badname varchar(50),
+  locationarea_locationid int,
+  anzahlbadegaeste int,
+  zeit bigint,
+  wochentag int,
+  PRIMARY KEY (badname, locationarea_locationid, zeit),
+  FOREIGN KEY (locationarea_locationid)
+  REFERENCES bachelor_bigdata2_locationarea (locationid)
+);
+
+
+CREATE TABLE bachelor_bigdata2_wetter(
+  locationarea_locationid int,
+  wetterzeit bigint,
+  wettertyp varchar(50),
+  temperatur int,
+  luftfeuchte int,
+  luftdruck int,
+  windgeschwindigkeit int,
+  windrichtung int,
+  wolken int,
+  regenmenge int,
+  wettertypdetail varchar(50),
+  wetterzeitref bigint,
+  PRIMARY KEY (wetterzeit, locationarea_locationid),
+  FOREIGN KEY (locationarea_locationid)
+  REFERENCES bachelor_bigdata2_locationarea(locationid)
+  ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE TABLE bachelor_bigdata2_tweet(
+  locationarea_locationid int,  
+  tweetzeit bigint,
+  tweetid bigint,
+  deviceinfo varchar(8000),
+  tweetstring varchar(8000),
+  language varchar(100),
+  country varchar(100),
+  favoritecount int,
+  numberhashtags int,
+  retweetcount int,
+  long float,
+  lat float, 
+  placefullname varchar(300),
+  placetype varchar(100),
+  PRIMARY KEY (tweetzeit, tweetid, locationarea_locationid),
+  FOREIGN KEY (locationarea_locationid)
+  REFERENCES bachelor_bigdata2_locationarea (locationid)
+  ON DELETE CASCADE ON UPDATE CASCADE
+
+);
+
+CREATE TABLE bachelor_bigdata2_keymanager(
+  keyname varchar(50),
+  keytype varchar(50),
+  weatherkey varchar(50),
+  consumerkey varchar(50),
+  consumerkeysecret varchar(50),
+  acesstoken varchar(50),
+  acesstokensecret varchar(50),
+  PRIMARY KEY (keyname)
+);
+
+
+CREATE TABLE bachelor_bigdata2_auswertung(
+	name varchar(200),
+	locationarea_locationid int,
+	zeit bigint,
+	wert float,
+	typ varchar(50)
+	PRIMARY KEY (name , locationarea_locationid, zeit ),
+	FOREIGN KEY (locationarea_locationid)
+	REFERENCES bachelor_bigdata2_locationarea(locationid)
+  	ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+
+
+CREATE TABLE bachelor_bigdata2_reftime(
+	reftime bigint,
+	locationarea_locationid int,
+	reftimeprevious bigint,
+	reftimenext bigint,
+	temptimefrom bigint,
+	temptimeto bigint
+	PRIMARY KEY (reftime , locationarea_locationid),
+	FOREIGN KEY (locationarea_locationid)
+	REFERENCES bachelor_bigdata2_locationarea(locationid)
+  	ON DELETE CASCADE ON UPDATE CASCADE
+);

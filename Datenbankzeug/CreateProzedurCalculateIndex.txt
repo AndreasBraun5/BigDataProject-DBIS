@@ -1,0 +1,366 @@
+USE [TestDatabase2]
+GO
+/****** Object:  StoredProcedure [dbo].[calculateindex]    Script Date: 15.07.2016 14:13:54 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+-- =============================================
+-- Author:		<Andreas Braun>
+-- Create date: <13. Juli 2016>
+-- Description:	<calculating the wetterref table for a given location>
+-- =============================================
+Create PROCEDURE [dbo].[calculateindex2]
+	-- Add the parameters for the stored procedure here
+	@locationid int, @calculatetimeFrom bigint, @calculatetimeTo bigint
+AS
+BEGIN
+/****** Script for calculating the all indexes for a certain timegap and certain location ******/
+-- Declare the variables to be used.
+DECLARE @tempreftime bigint;
+DECLARE @temptimeFrom bigint;
+DECLARE @temptimeTo bigint;
+
+/****** Intermediate setting of the variables ******/
+SET @temptimeFrom = 0; /* needs to be retrieved out of the reftimetable */
+SET @temptimeTo = 0 /* needs to be retrieved out of the reftimetable */
+SET @tempreftime = @calculatetimeFrom; /* needs to be retrieved out of the reftimetable */
+
+/* ##############################################################################################
+	Calculating the twitter indexes here
+############################################################################################## */
+
+/****** Script for calculating the handyindex = #TweetsHandy/#Tweets for the given timegap and certain location  ******/
+WHILE(@temptimeTo <= @calculatetimeTo) 
+BEGIN;	
+	SET @tempreftime = (SELECT reftime FROM [TestDatabase2].[dbo].[bachelor_bigdata2_reftime] WHERE reftimeprevious = @tempreftime AND locationarea_locationid = @locationid);
+	SET @temptimefrom = (SELECT temptimefrom FROM [TestDatabase2].[dbo].[bachelor_bigdata2_reftime] WHERE reftime = @tempreftime AND locationarea_locationid = @locationid);
+	SET @temptimeTo = (SELECT temptimeto FROM [TestDatabase2].[dbo].[bachelor_bigdata2_reftime] WHERE reftime = @tempreftime AND locationarea_locationid = @locationid);
+	/*error through division by zero is prevented, overall renaming is needed*/
+	INSERT INTO [TestDatabase2].[dbo].[bachelor_bigdata2_auswertung]
+	VALUES ('handyindex', @locationid, @tempreftime, 
+
+			/*(SELECT (COALESCE(a.#TweetsHandy*1.0 / NULLIF(b.#Tweets*1.0, 0), 0)) AS handyindex*/ 
+			/*(SELECT (a.#TweetsHandy*1.0 / NULLIF(b.#Tweets*1.0, 0)) AS handyindex */
+			/*(SELECT (a.#TweetsHandy*1.0 / b.#Tweets*1.0) AS handyindex*/
+
+			(SELECT (COALESCE(a.#TweetsHandy*1.0 / NULLIF(b.#Tweets*1.0, 0), 0)) AS handyindex
+			FROM  (SELECT COUNT(*) AS #TweetsHandy
+					FROM (	/*the same for all twitter indexes*/
+							SELECT *
+							FROM [TestDatabase2].[dbo].[bachelor_bigdata2_tweet]
+							WHERE tweetzeit > @temptimeFrom and tweetzeit < @temptimeTo and locationarea_locationid = @locationid
+						 ) AS timesorted
+					WHERE (timesorted.deviceinfo = 'Twitter for iPhone' or timesorted.deviceinfo = 'Twitter for Android')
+					) a,
+					/*the same for all twitter indexes*/
+					(SELECT COUNT(*) AS #Tweets
+					FROM (	SELECT *
+							FROM [TestDatabase2].[dbo].[bachelor_bigdata2_tweet]
+							WHERE tweetzeit > @temptimeFrom and tweetzeit < @temptimeTo  and locationarea_locationid = @locationid
+						 ) AS timesorted
+					) b	
+			)
+
+	, 'index');
+END;
+
+/***** Intermediate setting of the variables ******/
+SET @temptimeFrom = 0; /* needs to be retrieved out of the reftimetable */
+SET @temptimeTo = 0 /* needs to be retrieved out of the reftimetable */
+SET @tempreftime = @calculatetimeFrom; /* needs to be retrieved out of the reftimetable */
+/*change VALUES (value1,...)*/
+/*modify the select query*/
+
+/****** Script for calculating the hashtagindex = #Hashtags/#Tweets for the given timegap and certain location ******/
+/* ##################### think about using the number of tweets that have a hashtag, instead of counting all hashtags #####################*/
+WHILE(@temptimeTo <= @calculatetimeTo) 
+BEGIN;	
+	SET @tempreftime = (SELECT reftime FROM [TestDatabase2].[dbo].[bachelor_bigdata2_reftime] WHERE reftimeprevious = @tempreftime AND locationarea_locationid = @locationid);
+	SET @temptimefrom = (SELECT temptimefrom FROM [TestDatabase2].[dbo].[bachelor_bigdata2_reftime] WHERE reftime = @tempreftime AND locationarea_locationid = @locationid);
+	SET @temptimeTo = (SELECT temptimeto FROM [TestDatabase2].[dbo].[bachelor_bigdata2_reftime] WHERE reftime = @tempreftime AND locationarea_locationid = @locationid);
+	/*error through division by zero is prevented, overall renaming is needed*/
+	INSERT INTO [TestDatabase2].[dbo].[bachelor_bigdata2_auswertung]
+	VALUES ('hashtagindex', @locationid, @tempreftime, 
+
+			(SELECT (COALESCE(a.#Hashtags*1.0 / NULLIF(b.#Tweets*1.0, 0), 0)) AS hashtagindex 
+			FROM  (SELECT SUM(numberhashtags) AS #Hashtags
+					FROM (	/*the same for all twitter indexes*/
+							SELECT *
+							FROM [TestDatabase2].[dbo].[bachelor_bigdata2_tweet]
+							WHERE tweetzeit > @temptimeFrom and tweetzeit < @temptimeTo  and locationarea_locationid = @locationid
+						 ) AS timesorted
+					WHERE (timesorted.numberhashtags != 0) 
+					) a,
+					/*the same for all twitter indexes*/
+					(SELECT count(*) AS #Tweets
+					FROM (	SELECT *
+							FROM [TestDatabase2].[dbo].[bachelor_bigdata2_tweet]
+							WHERE tweetzeit > @temptimeFrom and tweetzeit < @temptimeTo and locationarea_locationid = @locationid
+						 ) AS timesorted
+					) b	
+			)
+
+	, 'index');
+END;
+	
+/****** Intermediate setting of the variables ******/
+SET @temptimeFrom = 0; /* needs to be retrieved out of the reftimetable */
+SET @temptimeTo = 0 /* needs to be retrieved out of the reftimetable */
+SET @tempreftime = @calculatetimeFrom; /* needs to be retrieved out of the reftimetable */
+/*change VALUES (value1,...)*/
+/*modify the select query*/
+
+/****** Script for calculating the tweetsgeoindex = #Tweetsgeo/#Tweets for the given timegap and certain location ******/
+WHILE(@temptimeTo <= @calculatetimeTo) 
+BEGIN;	
+	SET @tempreftime = (SELECT reftime FROM [TestDatabase2].[dbo].[bachelor_bigdata2_reftime] WHERE reftimeprevious = @tempreftime AND locationarea_locationid = @locationid);
+	SET @temptimefrom = (SELECT temptimefrom FROM [TestDatabase2].[dbo].[bachelor_bigdata2_reftime] WHERE reftime = @tempreftime AND locationarea_locationid = @locationid);
+	SET @temptimeTo = (SELECT temptimeto FROM [TestDatabase2].[dbo].[bachelor_bigdata2_reftime] WHERE reftime = @tempreftime AND locationarea_locationid = @locationid);
+	/*error through division by zero is prevented, overall renaming is needed*/
+	INSERT INTO [TestDatabase2].[dbo].[bachelor_bigdata2_auswertung]
+	VALUES ('tweetsgeoindex', @locationid, @tempreftime, 
+
+			(SELECT (COALESCE(a.#Tweetsgeo*1.0 / NULLIF(b.#Tweets*1.0, 0), 0)) AS tweetsgeoindex 
+			FROM  (SELECT COUNT(*) AS #Tweetsgeo
+					FROM (	/*the same for all twitter indexes*/
+							SELECT *
+							FROM [TestDatabase2].[dbo].[bachelor_bigdata2_tweet]
+							WHERE tweetzeit > @temptimeFrom and tweetzeit < @temptimeTo and locationarea_locationid = @locationid
+						 ) AS timesorted
+					WHERE (timesorted.lat != 0) 
+					) a,
+					/*the same for all twitter indexes*/
+					(SELECT count(*) AS #Tweets
+					FROM (	SELECT *
+							FROM [TestDatabase2].[dbo].[bachelor_bigdata2_tweet]
+							WHERE tweetzeit > @temptimeFrom and tweetzeit < @temptimeTo and locationarea_locationid = @locationid
+						 ) AS timesorted
+					) b	
+			)
+
+	, 'index');
+END;
+
+/****** Intermediate setting of the variables ******/
+SET @temptimeFrom = 0; /* needs to be retrieved out of the reftimetable */
+SET @temptimeTo = 0 /* needs to be retrieved out of the reftimetable */
+SET @tempreftime = @calculatetimeFrom; /* needs to be retrieved out of the reftimetable */
+/*change VALUES (value1,...)*/
+/*modify the select query*/
+
+/****** Script for calculating the poiindex = #poi/#Tweets for the given timegap and certain location ******/ /*################### Not sure if right########################*/
+WHILE(@temptimeTo <= @calculatetimeTo) 
+BEGIN;	
+	SET @tempreftime = (SELECT reftime FROM [TestDatabase2].[dbo].[bachelor_bigdata2_reftime] WHERE reftimeprevious = @tempreftime AND locationarea_locationid = @locationid);
+	SET @temptimefrom = (SELECT temptimefrom FROM [TestDatabase2].[dbo].[bachelor_bigdata2_reftime] WHERE reftime = @tempreftime AND locationarea_locationid = @locationid);
+	SET @temptimeTo = (SELECT temptimeto FROM [TestDatabase2].[dbo].[bachelor_bigdata2_reftime] WHERE reftime = @tempreftime AND locationarea_locationid = @locationid);
+	/*error through division by zero is prevented, overall renaming is needed*/
+	INSERT INTO [TestDatabase2].[dbo].[bachelor_bigdata2_auswertung]
+	VALUES ('poiindex', @locationid, @tempreftime, 
+
+			(SELECT (COALESCE(a.#poi*1.0 / NULLIF(b.#Tweets*1.0, 0), 0)) AS tweetsgeoindex 
+			FROM  (SELECT COUNT(*) AS #poi
+					FROM (	/*the same for all twitter indexes*/
+							SELECT *
+							FROM [TestDatabase2].[dbo].[bachelor_bigdata2_tweet]
+							WHERE tweetzeit > @temptimeFrom and tweetzeit < @temptimeTo and locationarea_locationid = @locationid
+						 ) AS timesorted
+					WHERE (timesorted.placetype = 'poi') 
+					) a,
+					/*the same for all twitter indexes*/
+					(SELECT count(*) AS #Tweets
+					FROM (	SELECT *
+							FROM [TestDatabase2].[dbo].[bachelor_bigdata2_tweet]
+							WHERE tweetzeit > @temptimeFrom and tweetzeit < @temptimeTo and locationarea_locationid = @locationid
+						 ) AS timesorted
+					) b	
+			)
+
+	, 'index');
+END;
+
+/* ##############################################################################################
+	Calculating the wetter indexes here
+############################################################################################## */ 
+
+/****** Intermediate setting of the variables ******/
+SET @temptimeFrom = 0; /* needs to be retrieved out of the reftimetable */
+SET @temptimeTo = 0 /* needs to be retrieved out of the reftimetable */
+SET @tempreftime = @calculatetimeFrom; /* needs to be retrieved out of the reftimetable */
+/*change VALUES (value1,...)*/
+/*modify the select query*/
+
+/****** Script for calculating the temperatureindex = (tempereature + 60) / 120 for the given timegap and certain location ******/
+WHILE(@temptimeTo <= @calculatetimeTo) 
+BEGIN;	
+	SET @tempreftime = (SELECT reftime FROM [TestDatabase2].[dbo].[bachelor_bigdata2_reftime] WHERE reftimeprevious = @tempreftime AND locationarea_locationid = @locationid);
+	SET @temptimefrom = (SELECT temptimefrom FROM [TestDatabase2].[dbo].[bachelor_bigdata2_reftime] WHERE reftime = @tempreftime AND locationarea_locationid = @locationid);
+	SET @temptimeTo = (SELECT temptimeto FROM [TestDatabase2].[dbo].[bachelor_bigdata2_reftime] WHERE reftime = @tempreftime AND locationarea_locationid = @locationid);
+	/*error through division by zero is prevented, overall renaming is needed*/
+	INSERT INTO [TestDatabase2].[dbo].[bachelor_bigdata2_auswertung]
+	VALUES ('temperaturindex', @locationid, @tempreftime, 
+
+			(SELECT (( a.temperatur*1.0 + 60) / 120*1.0) AS temperaturindex 
+			FROM  (SELECT temperatur AS temperatur
+					FROM (	/*Selection of all unique weatherdata*/
+							SELECT DISTINCT locationarea_locationid, wettertyp, temperatur, luftfeuchte, luftdruck, 
+									windgeschwindigkeit, windrichtung, wolken, regenmenge, wettertypdetail, wetterzeitref
+							FROM [TestDatabase2].[dbo].[bachelor_bigdata2_wetter]
+							WHERE wetterzeitref = @tempreftime and locationarea_locationid = @locationid
+						 ) AS timesorted
+					) a
+			 )
+
+	, 'index');
+END;
+
+/****** Intermediate setting of the variables ******/
+SET @temptimeFrom = 0; /* needs to be retrieved out of the reftimetable */
+SET @temptimeTo = 0 /* needs to be retrieved out of the reftimetable */
+SET @tempreftime = @calculatetimeFrom; /* needs to be retrieved out of the reftimetable */
+/*change VALUES (value1,...)*/
+/*modify the select query*/
+
+/****** Script for calculating the luftdruckindex = (luftdruck - 900) / 200 for the given timegap and certain location ******/
+WHILE(@temptimeTo <= @calculatetimeTo) 
+BEGIN;	
+	SET @tempreftime = (SELECT reftime FROM [TestDatabase2].[dbo].[bachelor_bigdata2_reftime] WHERE reftimeprevious = @tempreftime AND locationarea_locationid = @locationid);
+	SET @temptimefrom = (SELECT temptimefrom FROM [TestDatabase2].[dbo].[bachelor_bigdata2_reftime] WHERE reftime = @tempreftime AND locationarea_locationid = @locationid);
+	SET @temptimeTo = (SELECT temptimeto FROM [TestDatabase2].[dbo].[bachelor_bigdata2_reftime] WHERE reftime = @tempreftime AND locationarea_locationid = @locationid);
+	/*error through division by zero is prevented, overall renaming is needed*/
+	INSERT INTO [TestDatabase2].[dbo].[bachelor_bigdata2_auswertung]
+	VALUES ('luftdruckindex', @locationid, @tempreftime, 
+
+			(SELECT (( a.luftdruck*1.0 - 900*1.0)*1.0 / 200*1.0) AS luftdruckindex 
+			FROM  (SELECT luftdruck AS luftdruck
+					FROM (	/*Selection of all unique weatherdata*/
+							SELECT DISTINCT locationarea_locationid, wettertyp, temperatur, luftfeuchte, luftdruck, 
+									windgeschwindigkeit, windrichtung, wolken, regenmenge, wettertypdetail, wetterzeitref
+							FROM [TestDatabase2].[dbo].[bachelor_bigdata2_wetter]
+							WHERE wetterzeitref = @tempreftime and locationarea_locationid = @locationid
+						 ) AS timesorted
+					) a
+			 )
+
+	, 'index');
+END;
+
+/****** Intermediate setting of the variables ******/
+SET @temptimeFrom = 0; /* needs to be retrieved out of the reftimetable */
+SET @temptimeTo = 0 /* needs to be retrieved out of the reftimetable */
+SET @tempreftime = @calculatetimeFrom; /* needs to be retrieved out of the reftimetable */
+/*SET @calculatetimeTo = 1;*/
+/*change VALUES (value1,...)*/
+/*modify the select query*/
+
+/****** Script for calculating the luftfeucheindex = (luftfeuchte / 100)*1.0 for the given timegap and certain location ******/
+WHILE(@temptimeTo <= @calculatetimeTo) 
+BEGIN;	
+	SET @tempreftime = (SELECT reftime FROM [TestDatabase2].[dbo].[bachelor_bigdata2_reftime] WHERE reftimeprevious = @tempreftime AND locationarea_locationid = @locationid);
+	SET @temptimefrom = (SELECT temptimefrom FROM [TestDatabase2].[dbo].[bachelor_bigdata2_reftime] WHERE reftime = @tempreftime AND locationarea_locationid = @locationid);
+	SET @temptimeTo = (SELECT temptimeto FROM [TestDatabase2].[dbo].[bachelor_bigdata2_reftime] WHERE reftime = @tempreftime AND locationarea_locationid = @locationid);
+	/*error through division by zero is prevented, overall renaming is needed*/
+	INSERT INTO [TestDatabase2].[dbo].[bachelor_bigdata2_auswertung]
+	VALUES ('luftfeuchteindex', @locationid, @tempreftime, 
+
+			(SELECT (luftfeuchte*1.0/100*1.0)*1.0 AS luftfeuchte
+			FROM (	/*Selection of all unique weatherdata*/
+					SELECT DISTINCT locationarea_locationid, wettertyp, temperatur, luftfeuchte, luftdruck, 
+							windgeschwindigkeit, windrichtung, wolken, regenmenge, wettertypdetail, wetterzeitref
+					FROM [TestDatabase2].[dbo].[bachelor_bigdata2_wetter]
+					WHERE wetterzeitref = @tempreftime and locationarea_locationid = @locationid
+				 ) AS timesorted
+		     )
+
+	, 'index');
+END;
+
+/****** Intermediate setting of the variables ******/
+SET @temptimeFrom = 0; /* needs to be retrieved out of the reftimetable */
+SET @temptimeTo = 0 /* needs to be retrieved out of the reftimetable */
+SET @tempreftime = @calculatetimeFrom; /* needs to be retrieved out of the reftimetable */
+/*SET @calculatetimeTo = 1;*/
+/*change VALUES (value1,...)*/
+/*modify the select query*/
+
+/****** Script for calculating the windgeschwindigkeitindex = windgeschwindigkeit / 60 for the given timegap and certain location ******/
+WHILE(@temptimeTo <= @calculatetimeTo) 
+BEGIN;	
+	SET @tempreftime = (SELECT reftime FROM [TestDatabase2].[dbo].[bachelor_bigdata2_reftime] WHERE reftimeprevious = @tempreftime AND locationarea_locationid = @locationid);
+	SET @temptimefrom = (SELECT temptimefrom FROM [TestDatabase2].[dbo].[bachelor_bigdata2_reftime] WHERE reftime = @tempreftime AND locationarea_locationid = @locationid);
+	SET @temptimeTo = (SELECT temptimeto FROM [TestDatabase2].[dbo].[bachelor_bigdata2_reftime] WHERE reftime = @tempreftime AND locationarea_locationid = @locationid);
+	/*error through division by zero is prevented, overall renaming is needed*/
+	INSERT INTO [TestDatabase2].[dbo].[bachelor_bigdata2_auswertung]
+	VALUES ('windgeschwindigkeitindex', @locationid, @tempreftime, 
+
+			(SELECT (windgeschwindigkeit*1.0 / 60*1.0)*1.0 AS windgeschwindigkeitindex
+			FROM (	/*Selection of all unique weatherdata*/
+					SELECT DISTINCT locationarea_locationid, wettertyp, temperatur, luftfeuchte, luftdruck, 
+							windgeschwindigkeit, windrichtung, wolken, regenmenge, wettertypdetail, wetterzeitref
+					FROM [TestDatabase2].[dbo].[bachelor_bigdata2_wetter]
+					WHERE wetterzeitref = @tempreftime and locationarea_locationid = @locationid
+				 ) AS timesorted
+		     )
+
+	, 'index');
+END;
+
+/****** Intermediate setting of the variables ******/
+SET @temptimeFrom = 0; /* needs to be retrieved out of the reftimetable */
+SET @temptimeTo = 0 /* needs to be retrieved out of the reftimetable */
+SET @tempreftime = @calculatetimeFrom; /* needs to be retrieved out of the reftimetable */
+/*SET @calculatetimeTo = 1;*/
+/*change VALUES (value1,...)*/
+/*modify the select query*/
+
+/****** Script for calculating the wolkenindex = (bewoelkung / 100)*1.0 for the given timegap and certain location ******/
+WHILE(@temptimeTo <= @calculatetimeTo) 
+BEGIN;	
+	SET @tempreftime = (SELECT reftime FROM [TestDatabase2].[dbo].[bachelor_bigdata2_reftime] WHERE reftimeprevious = @tempreftime AND locationarea_locationid = @locationid);
+	SET @temptimefrom = (SELECT temptimefrom FROM [TestDatabase2].[dbo].[bachelor_bigdata2_reftime] WHERE reftime = @tempreftime AND locationarea_locationid = @locationid);
+	SET @temptimeTo = (SELECT temptimeto FROM [TestDatabase2].[dbo].[bachelor_bigdata2_reftime] WHERE reftime = @tempreftime AND locationarea_locationid = @locationid);
+	/*error through division by zero is prevented, overall renaming is needed*/
+	INSERT INTO [TestDatabase2].[dbo].[bachelor_bigdata2_auswertung]
+	VALUES ('wolkenindex', @locationid, @tempreftime, 
+
+			(SELECT (wolken*1.0/100*1.0)*1.0 AS wolkenindex
+			FROM (	/*Selection of all unique weatherdata*/
+					SELECT DISTINCT locationarea_locationid, wettertyp, temperatur, luftfeuchte, luftdruck, 
+							windgeschwindigkeit, windrichtung, wolken, regenmenge, wettertypdetail, wetterzeitref
+					FROM [TestDatabase2].[dbo].[bachelor_bigdata2_wetter]
+					WHERE wetterzeitref = @tempreftime and locationarea_locationid = @locationid
+				 ) AS timesorted
+		     )
+
+	, 'index');
+END;
+
+/****** Intermediate setting of the variables ******/
+SET @temptimeFrom = 0; /* needs to be retrieved out of the reftimetable */
+SET @temptimeTo = 0 /* needs to be retrieved out of the reftimetable */
+SET @tempreftime = @calculatetimeFrom; /* needs to be retrieved out of the reftimetable */
+/*SET @calculatetimeTo = 1;*/
+/*change VALUES (value1,...)*/
+/*modify the select query*/
+
+/****** Script for calculating the besucherindex = (#besucher / 5000)*1.0 for the given timegap and certain location ******/
+WHILE(@temptimeTo <= @calculatetimeTo) 
+BEGIN;	
+	SET @tempreftime = (SELECT reftime FROM [TestDatabase2].[dbo].[bachelor_bigdata2_reftime] WHERE reftimeprevious = @tempreftime AND locationarea_locationid = @locationid);
+	SET @temptimefrom = (SELECT temptimefrom FROM [TestDatabase2].[dbo].[bachelor_bigdata2_reftime] WHERE reftime = @tempreftime AND locationarea_locationid = @locationid);
+	SET @temptimeTo = (SELECT temptimeto FROM [TestDatabase2].[dbo].[bachelor_bigdata2_reftime] WHERE reftime = @tempreftime AND locationarea_locationid = @locationid);
+	/*error through division by zero is prevented, overall renaming is needed*/
+	INSERT INTO [TestDatabase2].[dbo].[bachelor_bigdata2_auswertung]
+	VALUES ('besucherindex', @locationid, @tempreftime, 
+
+			(SELECT (anzahlbadegaeste*1.0/5000*1.0)*1.0 AS besucherindex
+			FROM bachelor_bigdata2_baederverwaltung
+			WHERE zeit > @temptimeFrom and zeit < @temptimeTo and locationarea_locationid = @locationid)
+
+	, 'index');
+END;
+
+
+
+END

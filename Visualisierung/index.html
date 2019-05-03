@@ -1,0 +1,418 @@
+<!--
+-- 
+-- Einstiegspunkt der Anwendung
+-- 
+-- geschrieben fuer das Bachelorprojekt BigData 2016, AI IV / Universitaet Bayreuth
+-- 
+-- Author: BigData2
+-- 
+-->
+<!DOCTYPE html>
+<html>
+<head>
+<title>Bachelor Projekt</title>
+<meta charset="utf-8">
+<!--<link rel="stylesheet" type="text/css" href="css/main.css">-->
+
+<!-- eigene Dateien -->
+<script type="text/javascript" src="javascript/error.js"></script>
+<script type="text/javascript" src="javascript/fenster.js"></script>
+<script type="text/javascript" src="javascript/datenbank_settings.js"></script>
+<script type="text/javascript" src="javascript/datenbank_mysql.js"></script>
+<script type="text/javascript" src="javascript/datenbank_mssql.js"></script>
+<script type="text/javascript" src="javascript/datenbank.js"></script>
+<script type="text/javascript" src="javascript/utility.js"></script>
+<script type="text/javascript" src="javascript/gui.js"></script>
+<script type="text/javascript" src="javascript/daten.js"></script>
+<script type="text/javascript" src="javascript/location.js"></script>
+
+<!-- fremde Bibliotheken -->
+<script type="text/javascript" src="javascript/jquery-2.2.3.min.js"></script>
+<script type="text/javascript" src="javascript/jquery-ui.min.js"></script>
+
+<!-- eigene Dateien -->
+<script type="text/javascript">
+global.jQuery = jQuery;
+</script>
+
+<!-- fremde Bibliotheken -->
+<link rel="stylesheet" href="bootstrap-3.3.5-dist/css/bootstrap.min.css">
+<link rel="stylesheet" href="css/jquery-ui-1.10.0.custom.css">
+<link rel="stylesheet" href="css/jquery-ui.theme.css">
+<script type="text/javascript" src="bootstrap-3.3.5-dist/js/bootstrap.min.js"></script>
+<link rel="stylesheet" href="css/jquery-jvectormap-2.0.3.css" type="text/css" media="screen"/>
+<script type="text/javascript" src="javascript/jquery-jvectormap-2.0.3.min.js"></script>
+<script type="text/javascript" src="javascript/jquery-jvectormap-world-mill.js"></script>
+
+<!-- eigene Dateien -->
+<script type="text/javascript" src="javascript/daten_cache.js"></script>
+<script type="text/javascript" src="javascript/svg_chart.js"></script>
+<script type="text/javascript" src="javascript/visualisierung.js"></script>
+<script type="text/javascript" src="javascript/autocompletion_init.js"></script>
+<script type="text/javascript" src="javascript/python.js"></script>
+<link rel="stylesheet" type="text/css" href="css/style.css">
+<script type="text/javascript" src="javascript/app.js"></script>
+<script type="text/javascript">
+var out = function() { console.log(arguments); };
+</script>
+<style type="text/css">
+
+</style>
+</head>
+<body>
+<!-- Seitenüberschrift -->
+<div id="projektName" class="container">
+	<h1>GeoDeviceWeather</h1>
+	<h3>Your regional Tweets - Your lokal Weather</h3>
+	<div class="close">
+		<svg width="24px" height="24" style="display: block;">
+			<g id="close" style="cursor: pointer;">
+				<polygon points="5,5 20,5 20,20 5,20" style="fill:rgba(255,255,255,0);stroke-width:0;" />
+				<line x1="5" y1="5" x2="20" y2="20" style="stroke:#414D5C;stroke-width:3;" />
+				<line x1="5" y1="20" x2="20" y2="5" style="stroke:#414D5C;stroke-width:3;" />
+			</g>
+		</svg>
+	</div>
+</div>
+	
+<!-- Register Seitenauswahl -->
+<nav id="reiter" class="navbar navbar-default">
+	<div class="container-fluid">
+		<ul class="nav navbar-nav">
+			<li class="active"><a id="reiterHome" href="#">Startseite</a></li>
+			<li><a id="reiterOrtAuswahl" href="#">Visualisierung</a></li>
+			<li><a id="reiterNeuerOrt" href="#">Neuen Ort anlegen</a></li>
+			<li><a id="reiterKeymanagement" href="#">Keymanagement</a></li>
+			<li><a id="reiterImportmanagement" href="#">Importmanagement</a></li>
+		</ul>
+	</div>
+</nav>
+
+<div id="Seiten">
+    <!-- Startseite -->
+    <div id="SeiteHome">
+		<div id="textHerzlichWillkommen" class="row">
+			<h4><b>Herzlich Willkommen bei "GeoDeviceWeather"!</b><h4>
+		</div>
+		
+		<div class="row">
+			<div id="InfoTextHomeSeite" class="col-md-6">
+				<h5>Lassen Sie sich verschiedene Wetterdaten und Tweets nach Deviceverwendung<br>für bestimmte Orte anzeigen.<br><br>
+					Lassen Sie sich den Zusammenhang zwischen verschiedenen Kurven<br>anhand von Leistungskennzahlen anzeigen.<br><br>
+				Seichern Sie neue Orte ein und verwalten Sie die Importierung der Daten.</h5>
+			</div>
+			<div class="col-md-5">
+				<img src="InfoImport.png" alt=" ">
+			</div>
+		</div>
+    </div>
+	
+    <!-- Seite, um den Ort auszuwählen -->
+    <div id="SeiteOrtWahl">
+
+			<div id="textVisualisierungAnzeigen" class="row">
+				<h4>Visualisierung für bereits angelegte Orte anzeigen<h4>
+			</div>
+
+		<div class="row">
+			<!-- Dropdown-Menü zur Auswahl des Orts -->
+			<div id="OrtWahl" class="col-md-3">
+				<div class="dropdown">
+					<button class="btn btn-default" type="button" data-toggle="dropdown"> Ort auswählen <span class="caret"></span></button>
+					<ul class="dropdown-menu" role="menu">
+					</ul>
+				</div>
+			</div>
+		</div>
+		<!-- Name des ausgewählten Ortes soll über der Visualisierung eingeblendet werden -->
+		<div id="ausgewaehlterOrt" class="row">
+			<h4></h4>
+		</div>
+		<!-- hier wird die Karte zur Anzeige der verfügbaren Orte angezeigt -->
+		<div id="karte" style="width: 600px; height: 400px;"></div>
+		<!-- hier wird die Visualisierung eingefügt -->
+		<div id="visuBild"></div>
+		
+		<div class="VisualisierungDaten" style="display: none;">
+			<div class="optionGrafik">
+				<svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 100 100">
+					<path d="m50.011 0c-2.8839 0-5.7139 0.25936-8.4642 0.7281l-1.3424 14.221c-2.8444 0.79287-5.5365 1.9015-8.0546 3.322l-10.99-9.0785c-4.6419 3.286-8.7054 7.3259-11.991 11.968l9.1012 10.99c-1.4188 2.5151-2.552 5.214-3.3447 8.0546l-14.197 1.35c-0.46893 2.75-0.728 5.58-0.728 8.49 0 2.8897 0.25747 5.7085 0.7281 8.4641l14.198 1.3425c0.79274 2.8406 1.926 5.5395 3.3447 8.0546l-9.0785 10.99c3.2796 4.6294 7.3161 8.6885 11.945 11.968l11.013-9.1013c2.5197 1.4217 5.2082 2.5515 8.0546 3.3447l1.3424 14.221c2.7503 0.4688 5.5803 0.7054 8.4642 0.7054 2.8838 0 5.6911-0.2366 8.4414-0.7054l1.3424-14.221c2.8465-0.7932 5.5349-1.923 8.0546-3.3447l11.013 9.1013c4.6293-3.2797 8.6658-7.3388 11.945-11.968l-9.0785-10.99c1.4188-2.5151 2.552-5.214 3.3447-8.0546l14.198-1.3425c0.47063-2.7556 0.7281-5.5744 0.7281-8.4641 0-2.8848-0.25907-5.7131-0.7281-8.4642l-14.198-1.3424c-0.79274-2.8406-1.926-5.5395-3.3447-8.0546l9.1012-10.99c-3.2855-4.6423-7.349-8.6821-11.991-11.968l-10.99 9.0785c-2.5181-1.4205-5.2102-2.5291-8.0546-3.322l-1.3424-14.221c-2.7503-0.46874-5.5576-0.7281-8.4414-0.7281zm0 30.967c10.516 0 19.022 8.528 19.022 19.044s-8.5053 19.044-19.022 19.044c-10.516 0-19.044-8.528-19.044-19.044s8.528-19.044 19.044-19.044z"/>
+				</svg>
+			</div>
+			<!-- Checkboxen zur Auswahl der visualisierten Daten -->
+			<div class="scrollbar">
+				<div style="margin-top: -8px;">
+					<div id="checkBoxDaten">
+					</div>
+				</div>
+			</div>
+		</div>
+    </div>
+	
+    <!-- Seite, um einen neuen Ort zu speichern -->
+    <div id="SeiteNeuerOrt">
+		
+		<!-- Informationsbild, mit welchem Maß die Größe der Boundary Box berechnet wird -->
+		<div style="position:absolute; right:7em; margin-top: 2em;">
+			<img src="InfoKoordinaten.png" class="img-responsive" alt=" "><br>
+		</div>
+		
+		<div id="textNeuenOrtEingeben" class="row">
+			<h4>Neuen Ort einspeichern</h4>
+		</div>
+
+		<div id="zeileOrtEingabe" class="row">
+			<!-- Inputfeld für den Ortnamen -->
+			<div class="col-md-4">
+				<div class="form-group">
+					<label for="OrtName" class="sr-only">Ort</label>
+					<input type="text" class="form-control" id="OrtName" placeholder="Ort">
+				</div>
+			</div>
+			<!-- Inputfelder für die Koordinaten (werden automatisch nach Orteingabe ausgefüllt) -->
+			<div class="col-md-2">
+					<div id="LaengengradEingabeNeuerOrt" class="form-group">
+						<label for="latM" class="sr-only">latM</label>
+						<input type="text" class="form-control" id="latM" placeholder="Längengrad" readonly>
+					</div>
+			</div>
+			<div class="col-md-2">
+				<div id="BreitengradEingabeNeuerOrt" class="form-group">
+					<label for="lonM" class="sr-only">lonM</label>
+					<input type="text" class="form-control" id="lonM" placeholder="Breitengrad" readonly>
+				</div>
+			</div>
+		</div>
+
+		<div id="zeileBoundaryBox" class="row">
+			<div class="col-md-4">
+			</div>
+			<!-- Inputfeld für die Größe der Boundary Box -->
+			<div class="col-md-4 form-group">
+					<label for="area" class="sr-only">area</label>
+					<input type="number" step="0.01" min="0.01" class="form-control" id="area" placeholder="Radius für die Größe der Boundary-Box in Metern">
+			</div>
+		</div>
+
+		<div id="zeileNeuenOrtSpeichern" class="row">
+			<div class="col-md-4">
+			</div>
+			<div class="col-md-4">
+				<div class="form-inline">
+					<button id="SpeichernNeuerOrt" type="button" class="btn btn-default">Speichern</button>
+				</div>
+			</div>
+		</div>
+		
+		<div id="InfoKoordinatenBild" class="row">
+			<div id="karte_neuerOrt"></div>
+		</div>
+		
+    </div>
+	
+	<div id="SeiteImportmanagement">
+		<div id="textLaufendeImporte" class="row">
+			<h4>Übersicht über laufende Importe<h4>
+		</div>
+		<div class="container">
+			<table id="tabelleImporter" class="table table-striped table-condensed">
+				<thead>
+					<tr>
+						<th>PID</th>
+						<th>Typ</th>
+						<th>Ort</th>
+						<th>Status</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr id="tabelleImporterLeer"><td colspan="4" style="text-align: center; color: #F55; font-weight: bold;">Keine aktiven Prozesse</td></tr>
+				</tbody>
+			</table>
+		</div>
+		
+		<div id="textImportStarten" class="row">
+			<h4>Import starten</h4>
+		</div>
+
+		<div id="ImporterAuswahl" class="row">
+			<div class="btn-group">
+				<div id="TypWahlImporter" class="dropdown">
+					<button id="dropdownImportTyp" class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">Importer-Typ auswählen
+					<span class="caret"> </span></button>
+					<ul class="dropdown-menu">
+						<li><a href="#">Openweathermap</a><li>
+						<li><a href="#">Twitter</a></li>
+					</ul>
+				</div>
+			</div>
+			<div class="btn-group">
+				<div id="OrtWahlImporter" class="dropdown">
+					<button id="dropdownImportOrt" class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">Ort auswählen
+					<span class="caret"> </span></button>
+					<ul class="dropdown-menu"></ul>
+				</div>
+			</div>
+			<div class="btn-group">
+				<div style="float: left;"><button id="ImportStartenImporter" type="button" class="btn btn-default">Import starten</button></div>
+				<div style="float: left;"><button id="ImportStoppenImporter" type="button" class="btn btn-default">Alle Importe stoppen</button></div>
+			</div>
+		</div>
+		
+	</div>
+	
+	
+	<div id="SeiteKeymanagement">
+		
+		<div id="textVerfuegbareKeys" class="row">
+			<h4>Übersicht über noch verfügbare API-Keys<h4>
+		</div>
+		<!-- Übersichtstabelle über verfügbare API-Keys -->
+		<div class="container">
+			<table id="tabelleVerfuegbareKeys" class="table table-striped">
+				<thead>
+					<tr>
+						<th>API</th>
+						<th>Anzahl</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td>Twitter</td>
+						<td id="key_twitter_anzahl"></td>
+					</tr>
+					<tr>
+						<td>Openweathermap</td>
+						<td id="key_owm_anzahl"></td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+		
+		<div id="textNeuerAPIKey" class="row">
+			<div class="col-md-3">
+				<h4>neuen API-Key anlegen<h4>
+			</div>
+			<div class="col-md-9">
+				<div class="btn-group">
+					<button id="dropdownAPIkey" class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">API-Typ auswählen
+					<span class="caret"></span></button>
+					<ul class="dropdown-menu" id="apiTypDropdown">
+						<li><a href="#" id="OWMKeyEingabeAnzeigen">Openweathermap</a></li>
+						<li><a href="#" id="twitterKeyEingabeAnzeigen">Twitter</a></li>
+					</ul>
+				</div>
+			</div>
+		</div>
+		
+		<div id="neuerOWMKey">
+			<div class="row">
+				<form class="col-md-4">
+					<div class="form-group">
+						<label for="OWMAPIKey" class="sr-only">OWM API-Key</label>
+						<input type="text" class="form-control" id="OWMAPIKey" placeholder="GÜLTIGEN API-Key eingeben">
+					</div>
+				</form>
+				<div class="col-md-4"></div>
+				<div class="col-md-4">
+					<button id="OWMKeySpeichern" type="button" class="btn btn-default">API-Key speichern</button>
+				</div>
+			</div>
+		</div>
+		
+		
+		<div id="neuerTwitterKey">
+			<div class="row">
+				<form class="col-md-4">
+					<div class="form-group">
+						<label for="accessToken" class="sr-only">Access Token</label>
+						<input type="text" class="form-control" id="accessToken" placeholder="GÜLTIGEN Access Token eingeben">
+					</div>
+				</form>
+				<form class="col-md-4">
+					<div class="form-group">
+						<label for="twitterAPIKey" class="sr-only">API Key</label>
+						<input type="text" class="form-control" id="twitterAPIKey" placeholder="GÜLTIGEN API Key eingeben">
+					</div>
+				</form>
+			</div>
+			<div class="row">
+				<form class="col-md-4">
+					<div class="form-group">
+						<label for="tokenSecret" class="sr-only">Access Token Secret</label>
+						<input type="text" class="form-control" id="tokenSecret" placeholder="GÜLTIGES Access Token Secret eingeben">
+					</div>
+				</form>
+				<form class="col-md-4">
+					<div class="form-group">
+						<label for="twitterAPISecret" class="sr-only">API Secret</label>
+						<input type="text" class="form-control" id="twitterAPISecret" placeholder="GÜLTIGES API Secret eingeben">
+					</div>
+				</form>
+				<form class="col-md-4">
+					<button id="TwitterKeySpeichern" type="button" class="btn btn-default">API-Key speichern</button>
+				</form>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="databaseError" tabindex="-1" role="dialog" aria-labelledby="myModalLabel1">
+	<div class="modal-dialog" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+				<h4 class="modal-title" id="myModalLabel1">Fehler bei der Datenbankverbindung</h4>
+			</div>
+			<div class="modal-body">
+				<table class="table table-striped">
+					<thead>
+						<tr>
+							<th>#</th>
+							<th>Auftreten</th>
+							<th>Fehlermeldung</th>
+						</tr>
+					</thead>
+					<tbody id="databaseErrorMessage">
+					</tbody>
+				</table>
+			</div>
+			<div class="modal-footer">
+				<!--<button type="button" class="btn btn-default" data-dismiss="modal">Schließen</button>-->
+				<button type="button" class="btn btn-primary" data-dismiss="modal">Schließen</button>
+			</div>
+		</div>
+	</div>
+</div>
+<div class="modal fade" id="generalOk" tabindex="-1" role="dialog" aria-labelledby="myModalLabel2">
+	<div class="modal-dialog" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+				<h4 class="modal-title" id="myModalLabel2"></h4>
+			</div>
+			<div class="modal-body" id="generalOkMessage">
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-primary" data-dismiss="modal">Ok</button>
+			</div>
+		</div>
+	</div>
+</div>
+<div class="modal fade" id="generalError" tabindex="-1" role="dialog" aria-labelledby="myModalLabel3">
+	<div class="modal-dialog" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+				<h4 class="modal-title" id="myModalLabel3">Fehler!</h4>
+			</div>
+			<div class="modal-body" id="generalErrorMessage">
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-primary" data-dismiss="modal">Ok</button>
+			</div>
+		</div>
+	</div>
+</div>
+</body>
+</html>

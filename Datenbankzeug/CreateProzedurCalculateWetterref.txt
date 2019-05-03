@@ -1,0 +1,68 @@
+USE [TestDatabase2]
+GO
+/****** Object:  StoredProcedure [dbo].[calculateRefTimeTable]    Script Date: 15.07.2016 14:15:57 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+-- =============================================
+-- Author:		<>
+-- Create date: <13. Juli 2016>
+-- Description:	<calculating the wetterref table for a given location>
+-- =============================================
+Create PROCEDURE [dbo].[calculateRefTimeTable]
+	-- Add the parameters for the stored procedure here
+	@locationid int, @calculatetimeFrom bigint, @calculatetimeTo bigint
+AS
+BEGIN
+	/****** Script for calculating the wetterref table for a given location******/
+DECLARE @reftime bigint;
+DECLARE @temptimefrom bigint;
+DECLARE @temptimeto bigint;
+DECLARE @reftimeprevious bigint;
+DECLARE @reftimenext bigint;
+DECLARE @until bigint;
+
+/* unique selection of all wetterzeitref, reftimeprevious and reftimenext*/
+/* multiple insert possible */
+
+INSERT INTO bachelor_bigdata2_reftime(reftime, locationarea_locationid, reftimeprevious, reftimenext) 
+	SELECT wetterzeitref, locationarea_locationid, reftimeprevious, reftimenext
+	FROM (SELECT DISTINCT wetterzeitref, locationarea_locationid,
+			LAG(wetterzeitref, 1, 0) OVER (ORDER BY wetterzeitref DESC) AS reftimenext,
+			LEAD(wetterzeitref, 1, 0) OVER (ORDER BY wetterzeitref DESC) AS reftimeprevious,
+			wettertyp, temperatur, luftfeuchte, luftdruck, 
+			windgeschwindigkeit, windrichtung, wolken, regenmenge, wettertypdetail
+			FROM (SELECT DISTINCT wetterzeitref, 
+					locationarea_locationid, wettertyp, temperatur, luftfeuchte, luftdruck, 
+					windgeschwindigkeit, windrichtung, wolken, regenmenge, wettertypdetail
+					FROM [TestDatabase2].[dbo].[bachelor_bigdata2_wetter]
+   					WHERE wetterzeitref > @calculatetimefrom AND wetterzeitref < @calculatetimeto AND locationarea_locationid = @locationid
+				 ) AS a
+			WHERE wetterzeitref > @calculatetimefrom AND wetterzeitref < @calculatetimeto AND locationarea_locationid = @locationid
+		 ) b
+		 WHERE locationarea_locationid = @locationid
+		 /*ORDER BY wetterzeitref desc*/
+
+
+SET @reftime = (SELECT MIN(reftime) FROM bachelor_bigdata2_reftime WHERE locationarea_locationid = @locationid);
+SET @reftimeprevious = (SELECT reftimeprevious FROM bachelor_bigdata2_reftime WHERE reftime = @reftime and locationarea_locationid = @locationid);
+SET @reftimenext = (SELECT reftimenext FROM bachelor_bigdata2_reftime WHERE reftime = @reftime and locationarea_locationid = @locationid);
+SET @temptimefrom = @reftime - ((@reftime - @reftimeprevious) / 2);
+SET @temptimeto = ((@reftimenext - @reftime) / 2) + @reftime;
+SET @until = ((SELECT MAX(reftime) FROM bachelor_bigdata2_reftime WHERE locationarea_locationid = @locationid));
+
+WHILE (@reftime <= @until)
+BEGIN;
+	UPDATE bachelor_bigdata2_reftime
+	SET temptimefrom = @temptimefrom, temptimeto = @temptimeto
+	WHERE reftime = @reftime and locationarea_locationid = @locationid
+
+	SET @reftimeprevious = @reftime
+	SET @reftime = (SELECT reftime FROM bachelor_bigdata2_reftime WHERE reftime = @reftimenext and locationarea_locationid = @locationid);
+	SET @reftimenext = (SELECT reftimenext FROM bachelor_bigdata2_reftime WHERE reftime = @reftime and locationarea_locationid = @locationid);
+	SET @temptimefrom = @reftime - ((@reftime - @reftimeprevious) / 2);
+	SET @temptimeto = ((@reftimenext - @reftime) / 2) + @reftime;
+END;
+
+END

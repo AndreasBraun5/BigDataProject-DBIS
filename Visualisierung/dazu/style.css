@@ -1,0 +1,59 @@
+html, body {
+	-webkit-user-select: none;
+
+	overflow: hidden;
+
+	height: 100%;
+	width: 100%;
+}
+
+html {
+	border: 1px solid #AAA;
+}
+
+#projektName { text-align: center; cursor: move; -webkit-transition: height 0.5s, margin-left 0.5s; }
+#projektName h1 { font-size: 400% !important; color: #696969; -webkit-transition: font-size 0.5s, margin 0.5s; }
+#projektName h3 { font-size: 200 % !important; color: #A9A9A9; }
+#projektName div.close {
+	position: absolute;
+	display: block;
+	right: 10px;
+	top: 10px;
+}
+
+#projektName.small { text-align: left; margin-left: 0px; -webkit-transition: height 0.5s, margin-left 0.5s; }
+#projektName.small h1 { font-size: 200% !important; margin-top: 10px; -webkit-transition: font-size 0.5s, margin 0.5s; }
+#projektName.small h3 { display: none; }
+
+
+#reiter { margin-top: 2em; border-radius: 0px !important; border-left: 0px !important; border-right: 0px !important;
+			-webkit-transition: margin 0.5s, min-height 0.5s; }
+#reiter li a { color: black; -webkit-transition: padding 0.5s; }
+#reiter a:hover { background-color: #C0C0C0; }
+
+#reiter.small { margin: 0px; min-height: 30px; -webkit-transition: margin 0.5s, min-height 0.5s; }
+#reiter.small div ul li a { padding-top: 5px; padding-bottom: 5px; -webkit-transition: padding 0.5s; }
+
+#Seiten { overflow: hidden; }
+
+#SeiteHome { margin-top: 2em; margin-left: auto; margin-right: auto;}
+#bearbeitungBild { display: block; margin-left: auto; margin-right: auto; }
+
+#SeiteOrtWahl { display: block; margin-top: 2em; margin-left: 5em; -webkit-transition: margin 0.5s; }
+#SeiteOrtWahl.small div.row div.col-md-9 span { -webkit-transition: font-size 0.5s;  }
+#OrtWahl button { background-color: #C0C0C0; border-color: #A9A9A9; color: black}
+#karte { margin-top: 2em; margin-left: auto; margin-right:auto; }
+
+#SeiteOrtWahl.small { margin-top: 5px; margin-left: 5px; -webkit-transition: margin 0.5s;  }
+#SeiteOrtWahl.small div.row div.col-md-3 {   }
+#SeiteOrtWahl.small div.row div.col-md-9 span { font-size: 200%; -webkit-transition: font-size 0.5s; }
+
+#SeiteNeuerOrt { margin-top: 2em; margin-left: 5em; }
+#InfoEingabeNeuerOrt { margin-top: 2em; }
+#InfoKoordinatenBild { margin-top: 2em; }
+
+#SeiteImportmanagement { margin-top: 2em; margin-left: 5em; }
+#SeiteImportmanagement button { margin-top: 1em; margin-left: 5em; }
+#tabelleImporter { margin-top: 1em; }
+#textVerfuegbareKeys { margin-top: 2em; margin-left: 5em; }
+#textImportStarten { martin-top: 2em; margin-left: 5em; }
